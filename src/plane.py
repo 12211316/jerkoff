@@ -82,7 +82,7 @@ class OurPlane(pygame.sprite.Sprite):
             self.rect.right = self.width
 
     def reset(self):
-        # 初始化飞机(飞机挂了, 初始化到初始位置)
+        # 初始化飞机(飞机挂了, 初始化到初始位置)  现在飞机被碰撞后会游戏结束
         self.rect.left, self.rect.top = (self.width - self.rect.width) // 2, (self.height - self.rect.height - 60)
         # 重置飞机的存活状态
         self.active = True

@@ -33,13 +33,17 @@ exit_button = pygame.Rect(bg_size[0] - 100, 10, 80, 30)
 exit_text = font.render("Exit", True, (255, 255, 255))
 exit_text_rect = exit_text.get_rect(center=exit_button.center)
 
-# 创建游戏结束对话框
+# 结束对话框
 game_over_dialog = pygame.Surface((300, 200))
 game_over_dialog.fill((0, 0, 0))
 game_over_dialog.set_alpha(200)
 game_over_rect = game_over_dialog.get_rect(center=(bg_size[0]//2, bg_size[1]//2))
-game_over_text = font.render("Make sure to exit?", True, (255, 255, 255))
-game_over_text_rect = game_over_text.get_rect(center=(game_over_rect.width//2, 50))
+
+# 失败对话框
+game_fail_dialog = pygame.Surface((300, 200))
+game_fail_dialog.fill((0, 0, 0))
+game_fail_dialog.set_alpha(200)
+game_fail_rect = game_fail_dialog.get_rect(center=(bg_size[0]//2, bg_size[1]//2))
 
 confirm_button = pygame.Rect(game_over_rect.width//2 - 40, 120, 80, 30)
 confirm_text = font.render("ensure", True, (255, 255, 255))
@@ -87,6 +91,9 @@ def main():
     e1_destroy_index = 0
     me_destroy_index = 0
 
+    score = 0  # 初始化得分
+    final_score = 0
+
     # 定义子弹实例化个数
     bullet1 = []
     bullet_num = 6
@@ -97,9 +104,7 @@ def main():
         # 绘制背景图
         screen.blit(background, (0, 0))
 
-        # 绘制退出按钮
-        pygame.draw.rect(screen, (100, 100, 100), exit_button)
-        screen.blit(exit_text, exit_text_rect)
+
 
         # 微信的飞机貌似是喷气式的, 那么这个就涉及到一个帧数的问题
         clock = pygame.time.Clock()
@@ -114,6 +119,11 @@ def main():
                 if each.active:
                     # 随机循环输出小飞机敌机
                     each.move()
+                    if each.rect.top >= bg_size[1]:
+                        score -= 50  # 扣50分
+                        each.active = False
+                        each.reset()
+
                     screen.blit(each.image, each.rect)
 
                     pygame.draw.line(screen, color_black,
@@ -157,9 +167,14 @@ def main():
                         screen.blit(b.image, b.rect)
                         enemies_hit = pygame.sprite.spritecollide(b, enemies, False, pygame.sprite.collide_mask)
                         if enemies_hit:  # 如果子弹击中飞机
-                            b.active = False  # 子弹损毁
+                            b.active = False
                             for e in enemies_hit:
-                                e.active = False  # 小型敌机损毁
+                                e.active = False
+                                score += 10  # 击中加分
+
+                if score < 0 or not our_plane.active:
+                    game_over = True
+                    final_score = score
 
             # 毁坏状态绘制爆炸的场面
             else:
@@ -205,12 +220,38 @@ def main():
             delay = 60
         delay -= 1
 
+        # 绘制退出按钮
+        pygame.draw.rect(screen, (100, 100, 100), exit_button)
+        screen.blit(exit_text, exit_text_rect)
+
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+        screen.blit(score_text, (10, 10))
+
         # 如果游戏结束，显示游戏结束对话框
         if game_over:
-            screen.blit(game_over_dialog, game_over_rect)
-            screen.blit(game_over_text, (game_over_rect.left + game_over_text_rect.left, game_over_rect.top + game_over_text_rect.top))
-            pygame.draw.rect(screen, (100, 100, 100), (game_over_rect.left + confirm_button.left, game_over_rect.top + confirm_button.top, confirm_button.width, confirm_button.height))
-            screen.blit(confirm_text, (game_over_rect.left + confirm_text_rect.left, game_over_rect.top + confirm_text_rect.top))
+            # 游戏失败界面
+            if score < 0 or not our_plane.active:
+                # 绘制失败对话框
+                screen.blit(game_fail_dialog, game_fail_rect)
+
+                # 显示游戏结束文本
+                fail_text = font.render("Game Over!", True, (255, 255, 255))
+                screen.blit(fail_text, (game_fail_rect.centerx - 70, game_fail_rect.centery - 50))
+
+                # 显示最终得分
+                final_text = font.render(f"Final Score: {final_score}", True, (255, 255, 255))
+                screen.blit(final_text, (game_fail_rect.centerx - 90, game_fail_rect.centery - 10))
+
+                # 退出按钮
+                quit_btn = pygame.Rect(game_fail_rect.centerx - 40, game_fail_rect.centery + 30, 80, 30)
+                pygame.draw.rect(screen, (100, 100, 100), quit_btn)
+                quit_text = font.render("Quit", True, (255, 255, 255))
+                screen.blit(quit_text, (quit_btn.x + 15, quit_btn.y + 5))
+            else:
+                screen.blit(game_over_dialog, game_over_rect)
+                screen.blit(confirm_text, (game_over_rect.left + confirm_text_rect.left, game_over_rect.top + confirm_text_rect.top))
+                pygame.draw.rect(screen, (100, 100, 100), (game_over_rect.left + confirm_button.left, game_over_rect.top + confirm_button.top, confirm_button.width, confirm_button.height))
+                screen.blit(confirm_text, (game_over_rect.left + confirm_text_rect.left, game_over_rect.top + confirm_text_rect.top))
 
         # 绘制图像并输出到屏幕上面
         pygame.display.flip()
