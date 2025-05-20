@@ -45,6 +45,7 @@ game_fail_dialog.fill((0, 0, 0))
 game_fail_dialog.set_alpha(200)
 game_fail_rect = game_fail_dialog.get_rect(center=(bg_size[0]//2, bg_size[1]//2))
 
+#退出确定键
 confirm_button = pygame.Rect(game_over_rect.width//2 - 40, 120, 80, 30)
 confirm_text = font.render("ensure", True, (255, 255, 255))
 confirm_text_rect = confirm_text.get_rect(center=confirm_button.center)
@@ -189,6 +190,8 @@ def main():
             enemies_down = pygame.sprite.spritecollide(our_plane, enemies, False, pygame.sprite.collide_mask)
             if enemies_down:
                 our_plane.active = False
+                game_over = True
+                final_score = score
                 for row in enemies:
                     row.active = False
 
@@ -252,7 +255,9 @@ def main():
                 screen.blit(confirm_text, (game_over_rect.left + confirm_text_rect.left, game_over_rect.top + confirm_text_rect.top))
                 pygame.draw.rect(screen, (100, 100, 100), (game_over_rect.left + confirm_button.left, game_over_rect.top + confirm_button.top, confirm_button.width, confirm_button.height))
                 screen.blit(confirm_text, (game_over_rect.left + confirm_text_rect.left, game_over_rect.top + confirm_text_rect.top))
-
+                #退出界面文本
+                quit_text = font.render("Make ture to exit?", True, (255, 255, 255))
+                screen.blit(quit_text, (game_over_rect.centerx - 100, game_over_rect.centery - 50))
         # 绘制图像并输出到屏幕上面
         pygame.display.flip()
 
